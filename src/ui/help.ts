@@ -15,6 +15,7 @@ Commands:
   list                 List exposed skills
   validate             Validate catalog sources and exports
   audit                Audit a runtime target
+  sync                 Sync exports into a runtime target
   help                 Show this help
 
 Options:
@@ -30,6 +31,7 @@ Examples:
   skillcat source list
   skillcat validate
   skillcat audit codex
+  skillcat sync codex --dry-run
   skillcat --home ./catalog init
 `;
 }
@@ -93,6 +95,19 @@ Usage:
   skillcat audit <target>
 
 Options:
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function syncHelp(): string {
+  return `skillcat sync
+
+Usage:
+  skillcat sync <target> [--dry-run]
+
+Options:
+  --dry-run           Show planned actions without writing
   --home <path>        Use a specific catalog root
   --help              Show this help
 `;

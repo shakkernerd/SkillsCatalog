@@ -7,10 +7,11 @@ import { runExpose, formatExposeResult } from "./commands/expose.js";
 import { runList, formatList } from "./commands/list.js";
 import { runSourceAdd, formatSourceAddResult } from "./commands/source-add.js";
 import { runSourceList, formatSourceList } from "./commands/source-list.js";
+import { runSync, formatSyncResult } from "./commands/sync.js";
 import { runUnexpose, formatUnexposeResult } from "./commands/unexpose.js";
 import { runValidate, formatValidationResult } from "./commands/validate.js";
 import { SkillcatError } from "./errors.js";
-import { auditHelp, exposeHelp, initHelp, mainHelp, sourceHelp, unexposeHelp, version } from "./ui/help.js";
+import { auditHelp, exposeHelp, initHelp, mainHelp, sourceHelp, syncHelp, unexposeHelp, version } from "./ui/help.js";
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<number> {
   try {
@@ -32,6 +33,8 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         process.stdout.write(unexposeHelp());
       } else if (parsed.command[0] === "audit") {
         process.stdout.write(auditHelp());
+      } else if (parsed.command[0] === "sync") {
+        process.stdout.write(syncHelp());
       } else {
         process.stdout.write(mainHelp());
       }
@@ -120,6 +123,21 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
       });
       process.stdout.write(formatAuditResult(result));
       return 0;
+    }
+
+    if (command === "sync") {
+      if (parsed.command.length !== 1 || parsed.positional.length !== 1) {
+        throw new SkillcatError("sync requires <target>");
+      }
+
+      const [targetName] = parsed.positional;
+      const result = await runSync({
+        catalogHome: flagString(parsed, "home"),
+        targetName,
+        dryRun: flagBoolean(parsed, "dry-run")
+      });
+      process.stdout.write(formatSyncResult(result));
+      return result.plan.actions.some((action) => action.type === "conflict") ? 1 : 0;
     }
 
     if (command === "source") {

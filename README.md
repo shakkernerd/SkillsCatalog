@@ -19,4 +19,5 @@ pnpm start source add agent-scripts /path/to/agent-scripts
 pnpm start expose agent-scripts codex-review
 pnpm start list
 pnpm start validate
+pnpm start sync codex --dry-run
 ```
