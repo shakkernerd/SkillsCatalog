@@ -19,6 +19,7 @@ pnpm start source add /path/to/agent-scripts
 pnpm start add agent-scripts/codex-review
 pnpm start list
 pnpm start validate
+pnpm start doctor
 pnpm start install codex-review --target codex --dry-run
 pnpm start sync codex --dry-run
 pnpm start uninstall codex-review --target codex --dry-run

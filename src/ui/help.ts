@@ -16,6 +16,7 @@ Commands:
   uninstall            Remove catalog skills from a runtime target
   list                 List catalog skills
   validate             Validate catalog sources and exports
+  doctor               Summarize catalog, target, and state health
   audit                Audit a runtime target
   sync                 Sync exports into a runtime target
   prune                Remove stale synced runtime links
@@ -34,6 +35,7 @@ Examples:
   skillcat install codex-review --target codex
   skillcat source list
   skillcat validate
+  skillcat doctor
   skillcat audit codex
   skillcat sync codex --dry-run
   skillcat prune codex --dry-run
@@ -153,6 +155,18 @@ export function auditHelp(): string {
 
 Usage:
   skillcat audit <target>
+
+Options:
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function doctorHelp(): string {
+  return `skillcat doctor
+
+Usage:
+  skillcat doctor [target]
 
 Options:
   --home <path>        Use a specific catalog root

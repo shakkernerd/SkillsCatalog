@@ -3,6 +3,7 @@ import * as os from "node:os";
 import { parseCli, flagBoolean, flagString } from "./cli-parser.js";
 import { runAdd, formatAddResult } from "./commands/add.js";
 import { runAudit, formatAuditResult } from "./commands/audit.js";
+import { runDoctor, formatDoctorReport } from "./commands/doctor.js";
 import { runInit, formatInitResult } from "./commands/init.js";
 import { runExpose, formatExposeResult } from "./commands/expose.js";
 import { runInstall, formatInstallResult } from "./commands/install.js";
@@ -19,6 +20,7 @@ import { SkillcatError } from "./errors.js";
 import {
   auditHelp,
   addHelp,
+  doctorHelp,
   exposeHelp,
   initHelp,
   installHelp,
@@ -60,6 +62,8 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         process.stdout.write(removeHelp());
       } else if (parsed.command[0] === "audit") {
         process.stdout.write(auditHelp());
+      } else if (parsed.command[0] === "doctor") {
+        process.stdout.write(doctorHelp());
       } else if (parsed.command[0] === "sync") {
         process.stdout.write(syncHelp());
       } else if (parsed.command[0] === "prune") {
@@ -212,6 +216,20 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
       });
       process.stdout.write(formatAuditResult(result));
       return 0;
+    }
+
+    if (command === "doctor") {
+      if (parsed.command.length !== 1 || parsed.positional.length > 1) {
+        throw new SkillcatError("doctor accepts at most one target");
+      }
+
+      const [targetName] = parsed.positional;
+      const result = await runDoctor({
+        catalogHome: flagString(parsed, "home"),
+        targetName
+      });
+      process.stdout.write(formatDoctorReport(result));
+      return result.issues.some((issue) => issue.status === "error") ? 1 : 0;
     }
 
     if (command === "sync") {
