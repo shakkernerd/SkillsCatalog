@@ -7,6 +7,7 @@ import { runList, formatList } from "./commands/list.js";
 import { runSourceAdd, formatSourceAddResult } from "./commands/source-add.js";
 import { runSourceList, formatSourceList } from "./commands/source-list.js";
 import { runUnexpose, formatUnexposeResult } from "./commands/unexpose.js";
+import { runValidate, formatValidationResult } from "./commands/validate.js";
 import { SkillcatError } from "./errors.js";
 import { exposeHelp, initHelp, mainHelp, sourceHelp, unexposeHelp, version } from "./ui/help.js";
 
@@ -90,6 +91,18 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
       });
       process.stdout.write(formatList(result));
       return 0;
+    }
+
+    if (command === "validate") {
+      if (parsed.command.length !== 1 || parsed.positional.length !== 0) {
+        throw new SkillcatError("validate does not accept positional arguments");
+      }
+
+      const result = await runValidate({
+        catalogHome: flagString(parsed, "home")
+      });
+      process.stdout.write(formatValidationResult(result));
+      return result.issues.length === 0 ? 0 : 1;
     }
 
     if (command === "source") {

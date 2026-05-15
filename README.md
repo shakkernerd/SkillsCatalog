@@ -18,4 +18,5 @@ pnpm dev -- init --here
 pnpm dev -- source add agent-scripts /path/to/agent-scripts
 pnpm dev -- expose agent-scripts codex-review
 pnpm dev -- list
+pnpm dev -- validate
 ```

@@ -13,6 +13,7 @@ Commands:
   expose               Expose a source skill
   unexpose             Remove an exposed skill
   list                 List exposed skills
+  validate             Validate catalog sources and exports
   help                 Show this help
 
 Options:
@@ -26,6 +27,7 @@ Examples:
   skillcat source add agent-scripts /path/to/agent-scripts
   skillcat expose agent-scripts codex-review
   skillcat source list
+  skillcat validate
   skillcat --home ./catalog init
 `;
 }
