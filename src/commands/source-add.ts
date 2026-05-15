@@ -13,7 +13,7 @@ export interface SourceAddOptions {
   env?: NodeJS.ProcessEnv;
   homeDir?: string;
   catalogHome?: string;
-  name: string;
+  name?: string;
   sourcePath: string;
 }
 
@@ -27,8 +27,6 @@ export interface SourceAddResult {
 }
 
 export async function runSourceAdd(options: SourceAddOptions): Promise<SourceAddResult> {
-  validateCatalogName(options.name, "source");
-
   const catalogRoot = await resolveCatalogRoot({
     cwd: options.cwd,
     env: options.env,
@@ -37,6 +35,8 @@ export async function runSourceAdd(options: SourceAddOptions): Promise<SourceAdd
   });
   const manifest = await loadManifest(catalogRoot);
   const sourcePath = resolvePath(options.sourcePath, options.cwd ?? process.cwd(), options.homeDir ?? os.homedir());
+  const sourceName = options.name ?? path.basename(sourcePath);
+  validateCatalogName(sourceName, "source");
 
   await assertDirectory(sourcePath, "Source");
   const skills = await listSourceSkills(sourcePath);
@@ -44,18 +44,18 @@ export async function runSourceAdd(options: SourceAddOptions): Promise<SourceAdd
     throw new SkillcatError(`Source has no skills/*/SKILL.md entries: ${sourcePath}`);
   }
 
-  const existing = manifest.sources[options.name];
+  const existing = manifest.sources[sourceName];
   let manifestChanged = false;
-  const linkPath = path.join(catalogRoot, "sources", options.name);
+  const linkPath = path.join(catalogRoot, "sources", sourceName);
   if (existing) {
     if (path.resolve(existing.path) !== path.resolve(sourcePath)) {
-      throw new SkillcatError(`Source "${options.name}" already points to ${existing.path}`);
+      throw new SkillcatError(`Source "${sourceName}" already points to ${existing.path}`);
     }
 
     const linkStatus = await createDirectorySymlink(linkPath, sourcePath);
     return {
       catalogRoot,
-      name: options.name,
+      name: sourceName,
       sourcePath,
       skillCount: skills.length,
       linkStatus,
@@ -64,7 +64,7 @@ export async function runSourceAdd(options: SourceAddOptions): Promise<SourceAdd
   }
 
   const linkStatus = await createDirectorySymlink(linkPath, sourcePath);
-  manifest.sources[options.name] = {
+  manifest.sources[sourceName] = {
     type: "path",
     path: sourcePath
   };
@@ -82,7 +82,7 @@ export async function runSourceAdd(options: SourceAddOptions): Promise<SourceAdd
 
   return {
     catalogRoot,
-    name: options.name,
+    name: sourceName,
     sourcePath,
     skillCount: skills.length,
     linkStatus,

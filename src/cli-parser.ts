@@ -6,7 +6,7 @@ export interface ParsedCli {
   flags: Record<string, string | boolean>;
 }
 
-const stringFlags = new Set(["as", "home"]);
+const stringFlags = new Set(["home", "name", "target"]);
 const booleanFlags = new Set(["dry-run", "force", "help", "here", "version"]);
 
 export function parseCli(argv: string[]): ParsedCli {

@@ -50,6 +50,23 @@ describe("source commands", () => {
     expect(path.resolve(path.dirname(linkPath), await fs.readlink(linkPath))).toBe(source);
   });
 
+  it("defaults the source name from the folder name", async () => {
+    const catalog = path.join(tmp, "catalog");
+    const source = await createSourceRepo("agent-scripts", ["codex-review"]);
+    await runInit({ cwd: tmp, homeDir: tmp, catalogHome: catalog, env: {} });
+
+    const result = await runSourceAdd({
+      cwd: tmp,
+      homeDir: tmp,
+      catalogHome: catalog,
+      sourcePath: source
+    });
+
+    expect(result.name).toBe("agent-scripts");
+    const manifest = await loadManifest(catalog);
+    expect(manifest.sources["agent-scripts"]?.path).toBe(source);
+  });
+
   it("is idempotent for the same source", async () => {
     const catalog = path.join(tmp, "catalog");
     const source = await createSourceRepo("agent-scripts", ["codex-review"]);

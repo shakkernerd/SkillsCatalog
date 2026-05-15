@@ -1,25 +1,33 @@
 #!/usr/bin/env node
 import * as os from "node:os";
 import { parseCli, flagBoolean, flagString } from "./cli-parser.js";
+import { runAdd, formatAddResult } from "./commands/add.js";
 import { runAudit, formatAuditResult } from "./commands/audit.js";
 import { runInit, formatInitResult } from "./commands/init.js";
 import { runExpose, formatExposeResult } from "./commands/expose.js";
+import { runInstall, formatInstallResult } from "./commands/install.js";
 import { runList, formatList } from "./commands/list.js";
 import { runPrune, formatPruneResult } from "./commands/prune.js";
+import { runRemove, formatRemoveResult } from "./commands/remove.js";
 import { runSourceAdd, formatSourceAddResult } from "./commands/source-add.js";
 import { runSourceList, formatSourceList } from "./commands/source-list.js";
 import { runSync, formatSyncResult } from "./commands/sync.js";
+import { runRuntimeUninstall, formatRuntimeUninstallResult } from "./commands/uninstall.js";
 import { runUnexpose, formatUnexposeResult } from "./commands/unexpose.js";
 import { runValidate, formatValidationResult } from "./commands/validate.js";
 import { SkillcatError } from "./errors.js";
 import {
   auditHelp,
+  addHelp,
   exposeHelp,
   initHelp,
+  installHelp,
   mainHelp,
   pruneHelp,
+  removeHelp,
   sourceHelp,
   syncHelp,
+  runtimeUninstallHelp,
   unexposeHelp,
   version
 } from "./ui/help.js";
@@ -38,10 +46,18 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         process.stdout.write(initHelp());
       } else if (parsed.command[0] === "source") {
         process.stdout.write(sourceHelp());
+      } else if (parsed.command[0] === "add") {
+        process.stdout.write(addHelp());
       } else if (parsed.command[0] === "expose") {
         process.stdout.write(exposeHelp());
       } else if (parsed.command[0] === "unexpose") {
         process.stdout.write(unexposeHelp());
+      } else if (parsed.command[0] === "install") {
+        process.stdout.write(installHelp());
+      } else if (parsed.command[0] === "uninstall") {
+        process.stdout.write(runtimeUninstallHelp());
+      } else if (parsed.command[0] === "remove") {
+        process.stdout.write(removeHelp());
       } else if (parsed.command[0] === "audit") {
         process.stdout.write(auditHelp());
       } else if (parsed.command[0] === "sync") {
@@ -80,10 +96,70 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         catalogHome: flagString(parsed, "home"),
         sourceName,
         skillName,
-        asName: flagString(parsed, "as")
+        asName: flagString(parsed, "name")
       });
       process.stdout.write(formatExposeResult(result));
       return 0;
+    }
+
+    if (command === "add") {
+      if (parsed.command.length !== 1 || parsed.positional.length !== 1) {
+        throw new SkillcatError("add requires <source>/<skill>");
+      }
+
+      const [skillRef] = parsed.positional;
+      const result = await runAdd({
+        catalogHome: flagString(parsed, "home"),
+        skillRef,
+        name: flagString(parsed, "name")
+      });
+      process.stdout.write(formatAddResult(result));
+      return 0;
+    }
+
+    if (command === "install") {
+      if (parsed.command.length !== 1 || parsed.positional.length === 0) {
+        throw new SkillcatError("install requires at least one skill");
+      }
+
+      const result = await runInstall({
+        catalogHome: flagString(parsed, "home"),
+        targetName: flagString(parsed, "target"),
+        skillNames: parsed.positional,
+        dryRun: flagBoolean(parsed, "dry-run")
+      });
+      process.stdout.write(formatInstallResult(result));
+      return result.plan.actions.some((action) => action.type === "conflict") ? 1 : 0;
+    }
+
+    if (command === "uninstall") {
+      if (parsed.command.length !== 1 || parsed.positional.length === 0) {
+        throw new SkillcatError("uninstall requires at least one skill");
+      }
+
+      const result = await runRuntimeUninstall({
+        catalogHome: flagString(parsed, "home"),
+        targetName: flagString(parsed, "target"),
+        skillNames: parsed.positional,
+        dryRun: flagBoolean(parsed, "dry-run")
+      });
+      process.stdout.write(formatRuntimeUninstallResult(result));
+      return result.plan.actions.some((action) => action.type === "conflict") ? 1 : 0;
+    }
+
+    if (command === "remove") {
+      if (parsed.command.length !== 1 || parsed.positional.length !== 1) {
+        throw new SkillcatError("remove requires <skill>");
+      }
+
+      const [skillName] = parsed.positional;
+      const result = await runRemove({
+        catalogHome: flagString(parsed, "home"),
+        skillName,
+        dryRun: flagBoolean(parsed, "dry-run")
+      });
+      process.stdout.write(formatRemoveResult(result));
+      return result.plans.some((plan) => plan.actions.some((action) => action.type === "conflict")) ? 1 : 0;
     }
 
     if (command === "unexpose") {
@@ -172,14 +248,14 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
       const subcommand = parsed.command[1];
 
       if (subcommand === "add") {
-        if (parsed.positional.length !== 2) {
-          throw new SkillcatError("source add requires <name> and <path>");
+        if (parsed.positional.length !== 1) {
+          throw new SkillcatError("source add requires <path>");
         }
 
-        const [name, sourcePath] = parsed.positional;
+        const [sourcePath] = parsed.positional;
         const result = await runSourceAdd({
           catalogHome: flagString(parsed, "home"),
-          name,
+          name: flagString(parsed, "name"),
           sourcePath
         });
         process.stdout.write(formatSourceAddResult(result));

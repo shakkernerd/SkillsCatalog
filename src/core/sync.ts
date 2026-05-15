@@ -29,13 +29,25 @@ export async function planSync(
   catalogRoot: string,
   manifest: SkillcatManifest,
   targetName: string,
-  runtimeDir: string
+  runtimeDir: string,
+  exportNames = Object.keys(manifest.exports).sort()
 ): Promise<SyncPlan> {
   const target = manifest.targets[targetName];
   const runtimeEntries = await readRuntimeEntries(runtimeDir);
   const actions: SyncAction[] = [];
 
-  for (const exportName of Object.keys(manifest.exports).sort()) {
+  for (const exportName of [...exportNames].sort()) {
+    if (!manifest.exports[exportName]) {
+      actions.push({
+        type: "conflict",
+        name: exportName,
+        runtimePath: path.join(runtimeDir, exportName),
+        exportPath: path.join(catalogRoot, "skills", exportName),
+        reason: "not in catalog"
+      });
+      continue;
+    }
+
     const runtimePath = path.join(runtimeDir, exportName);
     const exportPath = path.join(catalogRoot, "skills", exportName);
 

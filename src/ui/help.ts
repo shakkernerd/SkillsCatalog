@@ -10,9 +10,11 @@ Commands:
   init                 Create a skillcat catalog
   source add           Add a local skill source
   source list          List configured sources
-  expose               Expose a source skill
-  unexpose             Remove an exposed skill
-  list                 List exposed skills
+  add                  Add a source skill to the catalog
+  remove               Remove a catalog skill from catalog and targets
+  install              Install catalog skills into a runtime target
+  uninstall            Remove catalog skills from a runtime target
+  list                 List catalog skills
   validate             Validate catalog sources and exports
   audit                Audit a runtime target
   sync                 Sync exports into a runtime target
@@ -27,8 +29,9 @@ Options:
 Examples:
   skillcat init
   skillcat init --here
-  skillcat source add agent-scripts /path/to/agent-scripts
-  skillcat expose agent-scripts codex-review
+  skillcat source add /path/to/agent-scripts
+  skillcat add agent-scripts/codex-review
+  skillcat install codex-review --target codex
   skillcat source list
   skillcat validate
   skillcat audit codex
@@ -56,10 +59,24 @@ export function sourceHelp(): string {
   return `skillcat source
 
 Usage:
-  skillcat source add <name> <path>
+  skillcat source add <path> [--name <name>]
   skillcat source list
 
 Options:
+  --name <name>        Use a specific source name
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function addHelp(): string {
+  return `skillcat add
+
+Usage:
+  skillcat add <source>/<skill> [--name <name>]
+
+Options:
+  --name <name>        Add the skill under another catalog name
   --home <path>        Use a specific catalog root
   --help              Show this help
 `;
@@ -69,10 +86,51 @@ export function exposeHelp(): string {
   return `skillcat expose
 
 Usage:
-  skillcat expose <source> <skill> [--as <name>]
+  skillcat expose <source> <skill> [--name <name>]
 
 Options:
-  --as <name>          Export the skill under another name
+  --name <name>        Export the skill under another name
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function installHelp(): string {
+  return `skillcat install
+
+Usage:
+  skillcat install <skill...> --target <target> [--dry-run]
+
+Options:
+  --target <target>   Runtime target to install into
+  --dry-run           Show planned installs without writing
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function removeHelp(): string {
+  return `skillcat remove
+
+Usage:
+  skillcat remove <skill> [--dry-run]
+
+Options:
+  --dry-run           Show target removals without writing
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function runtimeUninstallHelp(): string {
+  return `skillcat uninstall
+
+Usage:
+  skillcat uninstall <skill...> --target <target> [--dry-run]
+
+Options:
+  --target <target>   Runtime target to remove from
+  --dry-run           Show planned removals without writing
   --home <path>        Use a specific catalog root
   --help              Show this help
 `;

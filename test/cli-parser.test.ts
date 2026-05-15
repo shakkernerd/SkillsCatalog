@@ -14,11 +14,11 @@ describe("parseCli", () => {
   });
 
   it("keeps one-word commands separate from their positional arguments", () => {
-    expect(parseCli(["expose", "agent-scripts", "codex-review", "--as", "review"])).toEqual({
-      command: ["expose"],
-      positional: ["agent-scripts", "codex-review"],
+    expect(parseCli(["add", "agent-scripts/codex-review", "--name", "review"])).toEqual({
+      command: ["add"],
+      positional: ["agent-scripts/codex-review"],
       flags: {
-        as: "review"
+        name: "review"
       }
     });
   });
