@@ -107,7 +107,7 @@ function validateSources(value: unknown): Record<string, SkillcatSource> {
   const sources: Record<string, SkillcatSource> = {};
 
   for (const [name, source] of Object.entries(value)) {
-    validateName(name, "source");
+    validateCatalogName(name, "source");
     if (!isRecord(source)) {
       throw new SkillcatError(`Source "${name}" must be an object`);
     }
@@ -137,7 +137,7 @@ function validateExports(value: unknown): Record<string, SkillcatExport> {
   const exports: Record<string, SkillcatExport> = {};
 
   for (const [name, entry] of Object.entries(value)) {
-    validateName(name, "export");
+    validateCatalogName(name, "export");
     if (!isRecord(entry)) {
       throw new SkillcatError(`Export "${name}" must be an object`);
     }
@@ -167,7 +167,7 @@ function validateTargets(value: unknown): Record<string, SkillcatTarget> {
   const targets: Record<string, SkillcatTarget> = {};
 
   for (const [name, target] of Object.entries(value)) {
-    validateName(name, "target");
+    validateCatalogName(name, "target");
     if (!isRecord(target)) {
       throw new SkillcatError(`Target "${name}" must be an object`);
     }
@@ -189,7 +189,7 @@ function validateTargets(value: unknown): Record<string, SkillcatTarget> {
   return targets;
 }
 
-function validateName(name: string, kind: string): void {
+export function validateCatalogName(name: string, kind: string): void {
   if (!/^[a-zA-Z0-9._-]+$/.test(name) || name === "." || name === "..") {
     throw new SkillcatError(`Invalid ${kind} name "${name}"`);
   }
