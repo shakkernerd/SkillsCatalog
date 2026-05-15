@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { isNodeError } from "../errors.js";
+import { SkillcatError, isNodeError } from "../errors.js";
 
 export interface TargetState {
   target: string;
@@ -38,14 +38,14 @@ export async function loadTargetState(catalogRoot: string, targetName: string, r
   }
 
   try {
-    const parsed = JSON.parse(raw) as TargetState;
-    if (parsed.target !== targetName || typeof parsed.entries !== "object" || parsed.entries === null) {
-      return emptyTargetState(targetName, runtimeDir);
+    return validateTargetState(JSON.parse(raw), targetName);
+  } catch (error) {
+    if (error instanceof SkillcatError) {
+      throw error;
     }
 
-    return parsed;
-  } catch {
-    return emptyTargetState(targetName, runtimeDir);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new SkillcatError(`Invalid target state for "${targetName}": ${message}`);
   }
 }
 
@@ -59,4 +59,55 @@ export async function writeTargetState(catalogRoot: string, state: TargetState):
 
 export function targetStatePath(catalogRoot: string, targetName: string): string {
   return path.join(catalogRoot, "state", "targets", `${targetName}.json`);
+}
+
+function validateTargetState(value: unknown, targetName: string): TargetState {
+  if (!isRecord(value)) {
+    throw new SkillcatError(`Target state for "${targetName}" must be an object`);
+  }
+
+  if (value.target !== targetName) {
+    throw new SkillcatError(`Target state for "${targetName}" has mismatched target`);
+  }
+
+  if (typeof value.runtimeDir !== "string") {
+    throw new SkillcatError(`Target state for "${targetName}" runtimeDir must be a string`);
+  }
+
+  if (!isRecord(value.entries)) {
+    throw new SkillcatError(`Target state for "${targetName}" entries must be an object`);
+  }
+
+  const entries: Record<string, TargetStateEntry> = {};
+  for (const [name, entry] of Object.entries(value.entries)) {
+    if (!isRecord(entry)) {
+      throw new SkillcatError(`Target state entry "${name}" must be an object`);
+    }
+
+    if (
+      typeof entry.runtimePath !== "string" ||
+      typeof entry.exportPath !== "string" ||
+      entry.mode !== "symlink" ||
+      entry.createdBy !== "skillcat"
+    ) {
+      throw new SkillcatError(`Target state entry "${name}" is invalid`);
+    }
+
+    entries[name] = {
+      runtimePath: entry.runtimePath,
+      exportPath: entry.exportPath,
+      mode: "symlink",
+      createdBy: "skillcat"
+    };
+  }
+
+  return {
+    target: targetName,
+    runtimeDir: value.runtimeDir,
+    entries
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

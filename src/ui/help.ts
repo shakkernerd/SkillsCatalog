@@ -16,6 +16,7 @@ Commands:
   validate             Validate catalog sources and exports
   audit                Audit a runtime target
   sync                 Sync exports into a runtime target
+  prune                Remove stale synced runtime links
   help                 Show this help
 
 Options:
@@ -32,6 +33,7 @@ Examples:
   skillcat validate
   skillcat audit codex
   skillcat sync codex --dry-run
+  skillcat prune codex --dry-run
   skillcat --home ./catalog init
 `;
 }
@@ -108,6 +110,19 @@ Usage:
 
 Options:
   --dry-run           Show planned actions without writing
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function pruneHelp(): string {
+  return `skillcat prune
+
+Usage:
+  skillcat prune <target> [--dry-run]
+
+Options:
+  --dry-run           Show planned removals without writing
   --home <path>        Use a specific catalog root
   --help              Show this help
 `;

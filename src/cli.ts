@@ -5,13 +5,24 @@ import { runAudit, formatAuditResult } from "./commands/audit.js";
 import { runInit, formatInitResult } from "./commands/init.js";
 import { runExpose, formatExposeResult } from "./commands/expose.js";
 import { runList, formatList } from "./commands/list.js";
+import { runPrune, formatPruneResult } from "./commands/prune.js";
 import { runSourceAdd, formatSourceAddResult } from "./commands/source-add.js";
 import { runSourceList, formatSourceList } from "./commands/source-list.js";
 import { runSync, formatSyncResult } from "./commands/sync.js";
 import { runUnexpose, formatUnexposeResult } from "./commands/unexpose.js";
 import { runValidate, formatValidationResult } from "./commands/validate.js";
 import { SkillcatError } from "./errors.js";
-import { auditHelp, exposeHelp, initHelp, mainHelp, sourceHelp, syncHelp, unexposeHelp, version } from "./ui/help.js";
+import {
+  auditHelp,
+  exposeHelp,
+  initHelp,
+  mainHelp,
+  pruneHelp,
+  sourceHelp,
+  syncHelp,
+  unexposeHelp,
+  version
+} from "./ui/help.js";
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<number> {
   try {
@@ -35,6 +46,8 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         process.stdout.write(auditHelp());
       } else if (parsed.command[0] === "sync") {
         process.stdout.write(syncHelp());
+      } else if (parsed.command[0] === "prune") {
+        process.stdout.write(pruneHelp());
       } else {
         process.stdout.write(mainHelp());
       }
@@ -137,6 +150,21 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         dryRun: flagBoolean(parsed, "dry-run")
       });
       process.stdout.write(formatSyncResult(result));
+      return result.plan.actions.some((action) => action.type === "conflict") ? 1 : 0;
+    }
+
+    if (command === "prune") {
+      if (parsed.command.length !== 1 || parsed.positional.length !== 1) {
+        throw new SkillcatError("prune requires <target>");
+      }
+
+      const [targetName] = parsed.positional;
+      const result = await runPrune({
+        catalogHome: flagString(parsed, "home"),
+        targetName,
+        dryRun: flagBoolean(parsed, "dry-run")
+      });
+      process.stdout.write(formatPruneResult(result));
       return result.plan.actions.some((action) => action.type === "conflict") ? 1 : 0;
     }
 

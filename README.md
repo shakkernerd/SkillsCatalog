@@ -20,4 +20,5 @@ pnpm start expose agent-scripts codex-review
 pnpm start list
 pnpm start validate
 pnpm start sync codex --dry-run
+pnpm start prune codex --dry-run
 ```
