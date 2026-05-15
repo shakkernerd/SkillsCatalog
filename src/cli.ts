@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import * as os from "node:os";
 import { parseCli, flagBoolean, flagString } from "./cli-parser.js";
+import { runAudit, formatAuditResult } from "./commands/audit.js";
 import { runInit, formatInitResult } from "./commands/init.js";
 import { runExpose, formatExposeResult } from "./commands/expose.js";
 import { runList, formatList } from "./commands/list.js";
@@ -9,7 +10,7 @@ import { runSourceList, formatSourceList } from "./commands/source-list.js";
 import { runUnexpose, formatUnexposeResult } from "./commands/unexpose.js";
 import { runValidate, formatValidationResult } from "./commands/validate.js";
 import { SkillcatError } from "./errors.js";
-import { exposeHelp, initHelp, mainHelp, sourceHelp, unexposeHelp, version } from "./ui/help.js";
+import { auditHelp, exposeHelp, initHelp, mainHelp, sourceHelp, unexposeHelp, version } from "./ui/help.js";
 
 export async function main(argv: string[] = process.argv.slice(2)): Promise<number> {
   try {
@@ -29,6 +30,8 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
         process.stdout.write(exposeHelp());
       } else if (parsed.command[0] === "unexpose") {
         process.stdout.write(unexposeHelp());
+      } else if (parsed.command[0] === "audit") {
+        process.stdout.write(auditHelp());
       } else {
         process.stdout.write(mainHelp());
       }
@@ -103,6 +106,20 @@ export async function main(argv: string[] = process.argv.slice(2)): Promise<numb
       });
       process.stdout.write(formatValidationResult(result));
       return result.issues.length === 0 ? 0 : 1;
+    }
+
+    if (command === "audit") {
+      if (parsed.command.length !== 1 || parsed.positional.length !== 1) {
+        throw new SkillcatError("audit requires <target>");
+      }
+
+      const [targetName] = parsed.positional;
+      const result = await runAudit({
+        catalogHome: flagString(parsed, "home"),
+        targetName
+      });
+      process.stdout.write(formatAuditResult(result));
+      return 0;
     }
 
     if (command === "source") {

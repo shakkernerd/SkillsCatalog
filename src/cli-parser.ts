@@ -7,7 +7,7 @@ export interface ParsedCli {
 }
 
 const stringFlags = new Set(["as", "home"]);
-const booleanFlags = new Set(["force", "help", "here", "version"]);
+const booleanFlags = new Set(["dry-run", "force", "help", "here", "version"]);
 
 export function parseCli(argv: string[]): ParsedCli {
   const words: string[] = [];

@@ -14,6 +14,7 @@ Commands:
   unexpose             Remove an exposed skill
   list                 List exposed skills
   validate             Validate catalog sources and exports
+  audit                Audit a runtime target
   help                 Show this help
 
 Options:
@@ -28,6 +29,7 @@ Examples:
   skillcat expose agent-scripts codex-review
   skillcat source list
   skillcat validate
+  skillcat audit codex
   skillcat --home ./catalog init
 `;
 }
@@ -77,6 +79,18 @@ export function unexposeHelp(): string {
 
 Usage:
   skillcat unexpose <name>
+
+Options:
+  --home <path>        Use a specific catalog root
+  --help              Show this help
+`;
+}
+
+export function auditHelp(): string {
+  return `skillcat audit
+
+Usage:
+  skillcat audit <target>
 
 Options:
   --home <path>        Use a specific catalog root
