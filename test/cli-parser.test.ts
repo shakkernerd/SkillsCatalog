@@ -13,6 +13,16 @@ describe("parseCli", () => {
     });
   });
 
+  it("keeps one-word commands separate from their positional arguments", () => {
+    expect(parseCli(["expose", "agent-scripts", "codex-review", "--as", "review"])).toEqual({
+      command: ["expose"],
+      positional: ["agent-scripts", "codex-review"],
+      flags: {
+        as: "review"
+      }
+    });
+  });
+
   it("rejects unknown flags", () => {
     expect(() => parseCli(["init", "--wat"])).toThrow("Unknown flag --wat");
   });

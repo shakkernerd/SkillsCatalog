@@ -6,12 +6,11 @@ export interface ParsedCli {
   flags: Record<string, string | boolean>;
 }
 
-const stringFlags = new Set(["home"]);
+const stringFlags = new Set(["as", "home"]);
 const booleanFlags = new Set(["force", "help", "here", "version"]);
 
 export function parseCli(argv: string[]): ParsedCli {
-  const command: string[] = [];
-  const positional: string[] = [];
+  const words: string[] = [];
   const flags: Record<string, string | boolean> = {};
   let parsingFlags = true;
 
@@ -48,12 +47,12 @@ export function parseCli(argv: string[]): ParsedCli {
       throw new SkillcatError(`Unknown flag --${flag}`);
     }
 
-    if (command.length < 2 && positional.length === 0) {
-      command.push(token);
-    } else {
-      positional.push(token);
-    }
+    words.push(token);
   }
+
+  const commandLength = words[0] === "source" && (words[1] === "add" || words[1] === "list") ? 2 : Math.min(words.length, 1);
+  const command = words.slice(0, commandLength);
+  const positional = words.slice(commandLength);
 
   return { command, positional, flags };
 }
