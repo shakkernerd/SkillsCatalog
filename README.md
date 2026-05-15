@@ -7,16 +7,16 @@ Curate agent skills from multiple sources and sync selected skills into agent ru
 ```sh
 pnpm install
 pnpm build
-pnpm dev -- --help
-pnpm dev -- init --here
+pnpm skillcat --help
+pnpm start init --here
 ```
 
 ## Local catalog flow
 
 ```sh
-pnpm dev -- init --here
-pnpm dev -- source add agent-scripts /path/to/agent-scripts
-pnpm dev -- expose agent-scripts codex-review
-pnpm dev -- list
-pnpm dev -- validate
+pnpm start init --here
+pnpm start source add agent-scripts /path/to/agent-scripts
+pnpm start expose agent-scripts codex-review
+pnpm start list
+pnpm start validate
 ```

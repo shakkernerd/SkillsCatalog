@@ -18,8 +18,12 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
+    "skillcat": "node dist/cli.js",
+    "start": "tsx src/cli.ts",
     "test": "vitest run test",
-    "check": "tsc -p tsconfig.json && vitest run test"
+    "check": "tsc -p tsconfig.json && vitest run test",
+    "prepack": "pnpm build",
+    "prepublishOnly": "pnpm check"
   },
   "dependencies": {
     "yaml": "^2.8.1"
