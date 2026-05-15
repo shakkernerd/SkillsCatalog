@@ -1,0 +1,33 @@
+{
+  "name": "skillcat",
+  "version": "0.1.0",
+  "description": "Curate and sync agent skills from multiple sources.",
+  "type": "module",
+  "packageManager": "pnpm@10.29.3",
+  "bin": {
+    "skillcat": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx src/cli.ts",
+    "test": "vitest run test",
+    "check": "tsc -p tsconfig.json && vitest run test"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.8.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.13"
+  }
+}
