@@ -29,6 +29,7 @@ describe("doctor", () => {
     expect(report.sources).toMatchObject([{ name: "agent-scripts", status: "ok", details: "1 skills" }]);
     expect(report.skills).toMatchObject([{ name: "codex-review", status: "ok" }]);
     expect(report.targets).toMatchObject([{ name: "codex", status: "ok" }]);
+    expect(report.states).toMatchObject([{ target: "codex", status: "ok", details: "1 entries" }]);
     expect(report.issues).toEqual([]);
   });
 
@@ -64,7 +65,29 @@ describe("doctor", () => {
     expect(output).toContain("manifest: ok, valid");
     expect(output).toContain("agent-scripts: ok, 1 skills");
     expect(output).toContain("codex-review: ok");
+    expect(output).toContain("state:\n  codex: ok, 1 entries");
     expect(output).toContain("issues:\n  none");
+  });
+
+  it("reports corrupt target state as an error", async () => {
+    const { catalog } = await setupCatalog(true);
+    await fs.writeFile(path.join(catalog, "state", "targets", "codex.json"), "{ no", "utf8");
+
+    const report = await runDoctor({ cwd: tmp, homeDir: tmp, catalogHome: catalog });
+
+    expect(report.states[0]).toMatchObject({ target: "codex", status: "error" });
+    expect(report.issues.some((issue) => issue.status === "error" && issue.message.includes("Invalid target state"))).toBe(true);
+  });
+
+  it("reports stale target state as a warning", async () => {
+    const { catalog } = await setupCatalog(true);
+    const manifest = await loadManifest(catalog);
+    delete manifest.exports["codex-review"];
+    await writeManifest(catalog, manifest);
+
+    const report = await runDoctor({ cwd: tmp, homeDir: tmp, catalogHome: catalog });
+
+    expect(report.states[0]).toMatchObject({ target: "codex", status: "warn", details: "stale codex-review" });
   });
 });
 

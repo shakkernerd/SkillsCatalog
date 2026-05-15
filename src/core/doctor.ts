@@ -10,6 +10,7 @@ export interface DoctorReport {
   sources: DoctorSource[];
   skills: DoctorSkill[];
   targets: DoctorTarget[];
+  states: DoctorState[];
   issues: DoctorIssue[];
 }
 
@@ -40,6 +41,12 @@ export interface DoctorTarget {
   details: string;
 }
 
+export interface DoctorState {
+  target: string;
+  status: DoctorStatus;
+  details: string;
+}
+
 export interface DoctorIssue {
   status: "warn" | "error";
   message: string;
@@ -51,6 +58,7 @@ export function buildDoctorReport(input: {
   sources: Array<{ name: string; path: string; resolves: boolean; skillCount: number }>;
   skills: Array<{ name: string; source: string; path: string; resolvedPath: string }>;
   targets: AuditResult[];
+  states: DoctorState[];
 }): DoctorReport {
   const issues: DoctorIssue[] = input.validationIssues.map((issue) => ({
     status: "error",
@@ -105,6 +113,20 @@ export function buildDoctorReport(input: {
     };
   });
 
+  for (const state of input.states) {
+    if (state.status === "error") {
+      issues.push({
+        status: "error",
+        message: `${state.target}: state ${state.details}`
+      });
+    } else if (state.status === "warn") {
+      issues.push({
+        status: "warn",
+        message: `${state.target}: state ${state.details}`
+      });
+    }
+  }
+
   return {
     catalogRoot: input.catalogRoot,
     manifest: {
@@ -114,6 +136,7 @@ export function buildDoctorReport(input: {
     sources,
     skills,
     targets,
+    states: input.states,
     issues
   };
 }
