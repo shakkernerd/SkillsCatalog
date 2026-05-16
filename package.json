@@ -16,11 +16,14 @@
     "node": ">=20"
   },
   "scripts": {
+    "generate:version": "node scripts/generate-version.mjs",
+    "prebuild": "pnpm generate:version",
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
     "skillcat": "node dist/cli.js",
     "start": "tsx src/cli.ts",
     "test": "vitest run test",
+    "precheck": "pnpm generate:version",
     "check": "tsc -p tsconfig.json && vitest run test",
     "prepack": "pnpm build",
     "prepublishOnly": "pnpm check"

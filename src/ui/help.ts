@@ -1,4 +1,6 @@
-export const version = "0.1.0";
+import { version } from "../generated/version.js";
+
+export { version };
 
 export function mainHelp(): string {
   return `skillcat ${version}
