@@ -1,6 +1,6 @@
 {
   "name": "skillcat",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Curate and sync agent skills from multiple sources.",
   "keywords": [
     "agents",

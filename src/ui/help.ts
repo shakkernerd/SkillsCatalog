@@ -66,6 +66,11 @@ Usage:
   skillcat source add <path> [--name <name>]
   skillcat source list
 
+Source layouts:
+  <path>/skills/<skill>/SKILL.md
+  <path>/.agents/skills/<skill>/SKILL.md
+  <path>/SKILL.md
+
 Options:
   --name <name>        Use a specific source name
   --home <path>        Use a specific catalog root

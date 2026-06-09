@@ -67,6 +67,31 @@ describe("source commands", () => {
     expect(manifest.sources["agent-scripts"]?.path).toBe(source);
   });
 
+  it("discovers skills under a repo-root .agents/skills directory", async () => {
+    const catalog = path.join(tmp, "catalog");
+    const source = await createSourceRepo("maintainers", ["prepare-pr", "fastreviewpr"], ".agents/skills");
+    await fs.mkdir(path.join(source, "scripts"), { recursive: true });
+    await runInit({ cwd: tmp, homeDir: tmp, catalogHome: catalog, env: {} });
+
+    const result = await runSourceAdd({
+      cwd: tmp,
+      homeDir: tmp,
+      catalogHome: catalog,
+      name: "maintainers",
+      sourcePath: source
+    });
+
+    expect(result.skillCount).toBe(2);
+    await expect(runSourceList({ cwd: tmp, homeDir: tmp, catalogHome: catalog })).resolves.toEqual([
+      {
+        name: "maintainers",
+        path: source,
+        resolves: true,
+        skillCount: 2
+      }
+    ]);
+  });
+
   it("is idempotent for the same source", async () => {
     const catalog = path.join(tmp, "catalog");
     const source = await createSourceRepo("agent-scripts", ["codex-review"]);
@@ -113,7 +138,7 @@ describe("source commands", () => {
       catalogHome: catalog,
       name: "empty",
       sourcePath: source
-    })).rejects.toThrow("Source has no skills/*/SKILL.md entries");
+    })).rejects.toThrow("Source has no supported SKILL.md entries");
   });
 
   it("does not update the manifest when the source link path collides", async () => {
@@ -151,10 +176,10 @@ describe("source commands", () => {
   });
 });
 
-async function createSourceRepo(name: string, skills: string[]): Promise<string> {
+async function createSourceRepo(name: string, skills: string[], skillsPath = "skills"): Promise<string> {
   const root = path.join(tmp, name);
   for (const skill of skills) {
-    const skillRoot = path.join(root, "skills", skill);
+    const skillRoot = path.join(root, skillsPath, skill);
     await fs.mkdir(skillRoot, { recursive: true });
     await fs.writeFile(path.join(skillRoot, "SKILL.md"), `---\nname: ${skill}\ndescription: "${skill}"\n---\n`, "utf8");
   }

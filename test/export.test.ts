@@ -2,6 +2,7 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { runAdd } from "../src/commands/add.js";
 import { runExpose } from "../src/commands/expose.js";
 import { runInit } from "../src/commands/init.js";
 import { runList } from "../src/commands/list.js";
@@ -48,6 +49,35 @@ describe("export commands", () => {
     const linkPath = path.join(catalog, "skills", "codex-review");
     expect((await fs.lstat(linkPath)).isSymbolicLink()).toBe(true);
     expect(path.resolve(path.dirname(linkPath), await fs.readlink(linkPath))).toBe(path.join(source, "skills", "codex-review"));
+  });
+
+  it("adds a skill discovered under .agents/skills from the source root", async () => {
+    const catalog = path.join(tmp, "catalog");
+    const source = await createSourceRepo("maintainers", ["prepare-pr"], ".agents/skills");
+    await runInit({ cwd: tmp, homeDir: tmp, catalogHome: catalog, env: {} });
+    await runSourceAdd({ cwd: tmp, homeDir: tmp, catalogHome: catalog, name: "maintainers", sourcePath: source });
+
+    const result = await runAdd({
+      cwd: tmp,
+      homeDir: tmp,
+      catalogHome: catalog,
+      skillRef: "maintainers/prepare-pr"
+    });
+
+    expect(result).toMatchObject({
+      exportName: "prepare-pr",
+      sourceName: "maintainers",
+      skillPath: path.join(source, ".agents", "skills", "prepare-pr")
+    });
+
+    const manifest = await loadManifest(catalog);
+    expect(manifest.exports["prepare-pr"]).toEqual({
+      source: "maintainers",
+      path: ".agents/skills/prepare-pr"
+    });
+
+    const linkPath = path.join(catalog, "skills", "prepare-pr");
+    expect(path.resolve(path.dirname(linkPath), await fs.readlink(linkPath))).toBe(path.join(source, ".agents", "skills", "prepare-pr"));
   });
 
   it("supports exposing a skill under an alias", async () => {
@@ -172,4 +202,15 @@ async function setupCatalog(skills: string[]): Promise<{ catalog: string; source
   await runSourceAdd({ cwd: tmp, homeDir: tmp, catalogHome: catalog, name: "agent-scripts", sourcePath: source });
 
   return { catalog, source };
+}
+
+async function createSourceRepo(name: string, skills: string[], skillsPath = "skills"): Promise<string> {
+  const source = path.join(tmp, name);
+  for (const skill of skills) {
+    const skillRoot = path.join(source, skillsPath, skill);
+    await fs.mkdir(skillRoot, { recursive: true });
+    await fs.writeFile(path.join(skillRoot, "SKILL.md"), `---\nname: ${skill}\ndescription: "${skill}"\n---\n`, "utf8");
+  }
+
+  return source;
 }

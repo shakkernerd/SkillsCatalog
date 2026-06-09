@@ -41,7 +41,7 @@ export async function runSourceAdd(options: SourceAddOptions): Promise<SourceAdd
   await assertDirectory(sourcePath, "Source");
   const skills = await listSourceSkills(sourcePath);
   if (skills.length === 0) {
-    throw new SkillcatError(`Source has no skills/*/SKILL.md entries: ${sourcePath}`);
+    throw new SkillcatError(`Source has no supported SKILL.md entries: ${sourcePath}`);
   }
 
   const existing = manifest.sources[sourceName];

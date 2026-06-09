@@ -146,6 +146,8 @@ skillcat init [--here] [--home <path>]
 skillcat source add <path> [--name <name>]
 skillcat source list
 ```
+
+`source add` accepts a skill folder, a repo with `skills/`, or a repo with `.agents/skills/`.
 </details>
 
 <details>

@@ -5,6 +5,7 @@ import { SkillcatError, isNodeError } from "../errors.js";
 import { loadManifest, validateCatalogName, writeManifest } from "../manifest.js";
 import { assertExportNameAllowed, assertSkillDirectory } from "../core/exports.js";
 import { createDirectorySymlink } from "../core/fs.js";
+import { findSourceSkill } from "../core/skills.js";
 
 export interface ExposeOptions {
   cwd?: string;
@@ -46,8 +47,9 @@ export async function runExpose(options: ExposeOptions): Promise<ExposeResult> {
 
   assertExportNameAllowed(manifest, exportName);
 
-  const exportPath = path.join("skills", options.skillName);
-  const skillPath = path.join(source.path, exportPath);
+  const skill = await findSourceSkill(source.path, options.skillName);
+  const exportPath = skill.relativePath;
+  const skillPath = skill.path;
   await assertSkillDirectory(skillPath);
 
   const existing = manifest.exports[exportName];

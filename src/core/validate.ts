@@ -23,7 +23,7 @@ export async function validateCatalog(catalogRoot: string, manifest: SkillcatMan
       await assertDirectory(source.path, `Source "${name}"`);
       const skills = await listSourceSkills(source.path);
       if (skills.length === 0) {
-        throw new SkillcatError(`Source "${name}" has no skills/*/SKILL.md entries`);
+        throw new SkillcatError(`Source "${name}" has no supported SKILL.md entries`);
       }
 
       await assertSymlink(path.join(catalogRoot, "sources", name), source.path, `Source "${name}" link`);
