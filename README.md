@@ -147,7 +147,7 @@ skillcat source add <path> [--name <name>]
 skillcat source list
 ```
 
-`source add` accepts a skill folder, a repo with `skills/`, or a repo with `.agents/skills/`.
+`source add` accepts a skill folder, a repo with `skills/`, or a repo with `.agents/skills/`. Skills must include `SKILL.md` frontmatter with `name` and `description`.
 </details>
 
 <details>

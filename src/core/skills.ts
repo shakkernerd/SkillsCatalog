@@ -1,11 +1,13 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { SkillcatError } from "../errors.js";
+import { readSkillFrontmatter, type SkillFrontmatter } from "./frontmatter.js";
 
 export interface SkillEntry {
   name: string;
   path: string;
   relativePath: string;
+  frontmatter: SkillFrontmatter;
 }
 
 export const skillContainerPaths = [
@@ -112,11 +114,19 @@ async function addNestedSkillsFromContainer(skills: Map<string, SkillEntry>, sou
 }
 
 async function addSkillIfPresent(skills: Map<string, SkillEntry>, sourceRoot: string, skillPath: string): Promise<boolean> {
+  const skillFile = path.join(skillPath, "SKILL.md");
   try {
-    const stat = await fs.stat(path.join(skillPath, "SKILL.md"));
+    const stat = await fs.stat(skillFile);
     if (!stat.isFile()) {
       return false;
     }
+  } catch {
+    return false;
+  }
+
+  let frontmatter: SkillFrontmatter;
+  try {
+    frontmatter = await readSkillFrontmatter(skillFile);
   } catch {
     return false;
   }
@@ -125,7 +135,8 @@ async function addSkillIfPresent(skills: Map<string, SkillEntry>, sourceRoot: st
   skills.set(relativePath, {
     name: path.basename(skillPath),
     path: skillPath,
-    relativePath
+    relativePath,
+    frontmatter
   });
   return true;
 }

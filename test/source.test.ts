@@ -92,6 +92,48 @@ describe("source commands", () => {
     ]);
   });
 
+  it("ignores SKILL.md files without valid skill frontmatter", async () => {
+    const catalog = path.join(tmp, "catalog");
+    const source = await createSourceRepo("mixed-source", ["valid"]);
+    const invalidSkill = path.join(source, ".agents", "skills", "invalid");
+    await fs.mkdir(invalidSkill, { recursive: true });
+    await fs.writeFile(path.join(invalidSkill, "SKILL.md"), "# Missing frontmatter\n", "utf8");
+    await runInit({ cwd: tmp, homeDir: tmp, catalogHome: catalog, env: {} });
+
+    const result = await runSourceAdd({
+      cwd: tmp,
+      homeDir: tmp,
+      catalogHome: catalog,
+      name: "mixed",
+      sourcePath: source
+    });
+
+    expect(result.skillCount).toBe(1);
+    await expect(runSourceList({ cwd: tmp, homeDir: tmp, catalogHome: catalog })).resolves.toMatchObject([
+      {
+        name: "mixed",
+        skillCount: 1
+      }
+    ]);
+  });
+
+  it("refuses a source when every SKILL.md is invalid", async () => {
+    const catalog = path.join(tmp, "catalog");
+    const source = path.join(tmp, "invalid-source");
+    const skillRoot = path.join(source, "skills", "invalid");
+    await fs.mkdir(skillRoot, { recursive: true });
+    await fs.writeFile(path.join(skillRoot, "SKILL.md"), "---\nname: invalid\n---\n", "utf8");
+    await runInit({ cwd: tmp, homeDir: tmp, catalogHome: catalog, env: {} });
+
+    await expect(runSourceAdd({
+      cwd: tmp,
+      homeDir: tmp,
+      catalogHome: catalog,
+      name: "invalid",
+      sourcePath: source
+    })).rejects.toThrow("Source has no supported SKILL.md entries");
+  });
+
   it("is idempotent for the same source", async () => {
     const catalog = path.join(tmp, "catalog");
     const source = await createSourceRepo("agent-scripts", ["codex-review"]);

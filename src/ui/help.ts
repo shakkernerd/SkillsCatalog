@@ -71,6 +71,8 @@ Source layouts:
   <path>/.agents/skills/<skill>/SKILL.md
   <path>/SKILL.md
 
+Skills must include YAML frontmatter with name and description.
+
 Options:
   --name <name>        Use a specific source name
   --home <path>        Use a specific catalog root
