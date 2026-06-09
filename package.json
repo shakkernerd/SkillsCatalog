@@ -42,6 +42,9 @@
     "test": "vitest run test",
     "precheck": "pnpm generate:version",
     "check": "tsc -p tsconfig.json && vitest run test",
+    "package:check": "node scripts/package-check.mjs --skip-version-check",
+    "version:update": "node scripts/update-version.mjs",
+    "release": "node scripts/release.mjs",
     "prepack": "pnpm build",
     "prepublishOnly": "pnpm check"
   },
