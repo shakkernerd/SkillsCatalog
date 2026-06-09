@@ -2,6 +2,23 @@
   "name": "skillcat",
   "version": "0.1.0",
   "description": "Curate and sync agent skills from multiple sources.",
+  "keywords": [
+    "agents",
+    "codex",
+    "skills",
+    "cli",
+    "catalog"
+  ],
+  "homepage": "https://github.com/shakkernerd/SkillsCatalog#readme",
+  "bugs": {
+    "url": "https://github.com/shakkernerd/SkillsCatalog/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shakkernerd/SkillsCatalog.git"
+  },
+  "license": "MIT",
+  "author": "Shakker",
   "type": "module",
   "packageManager": "pnpm@10.29.3",
   "bin": {
@@ -16,7 +33,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "generate:version": "node scripts/generate-version.mjs",
+    "generate:version": "tsx scripts/generate-version.ts",
     "prebuild": "pnpm generate:version",
     "build": "tsc -p tsconfig.json",
     "dev": "tsx src/cli.ts",
