@@ -1,6 +1,6 @@
 {
   "name": "skillcat",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Curate and sync agent skills from multiple sources.",
   "keywords": [
     "agents",
@@ -51,7 +51,7 @@
   "devDependencies": {
     "@types/node": "^25.8.0",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3",
+    "typescript": "^6.0.3",
     "vitest": "^4.0.13"
   }
 }
