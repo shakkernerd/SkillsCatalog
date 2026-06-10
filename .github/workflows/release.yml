@@ -51,6 +51,7 @@ jobs:
         uses: actions/checkout@v5
         with:
           ref: refs/tags/${{ steps.release-tag.outputs.tag }}
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -107,3 +108,17 @@ jobs:
         with:
           tag_name: ${{ steps.release-tag.outputs.tag }}
           files: release-dist/*.tgz
+
+      - name: Update release notes with publish proof
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ steps.release-tag.outputs.tag }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          gh release view "$RELEASE_TAG" --json body --jq .body > release-body.md
+          node scripts/release-notes.mjs append-publish-proof \
+            --version "$version" \
+            --body-file release-body.md \
+            --output release-notes.md
+          gh release edit "$RELEASE_TAG" --notes-file release-notes.md

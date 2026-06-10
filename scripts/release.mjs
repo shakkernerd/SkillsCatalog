@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-import { readFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -178,20 +179,22 @@ async function main() {
     log(`skip: main and ${tag} are already pushed to ${remote}`);
   }
 
+  if (options.githubRelease) {
+    await createGithubRelease({ packageName, tag, version });
+  } else {
+    log("skip: GitHub Release creation is disabled");
+  }
+
   console.log(`Release prep complete for ${tag}.
 
 Next:
-  1. Open GitHub Releases
-  2. Create or publish the release ${tag} from the existing tag
-  3. The release workflow will publish the npm package
-
-Optional GitHub CLI:
-  gh release create ${tag} --title ${tag} --generate-notes
+  1. Watch the Release workflow for ${tag}
+  2. Verify npm after the workflow finishes
 `);
 }
 
 function parseArgs(args) {
-  const parsed = { remote: "origin", skipChecks: false, help: false, version: "" };
+  const parsed = { remote: "origin", skipChecks: false, githubRelease: true, help: false, version: "" };
   for (let index = 0; index < args.length; index += 1) {
     const arg = args[index];
     if (arg === "--help" || arg === "-h") {
@@ -200,6 +203,8 @@ function parseArgs(args) {
       continue;
     } else if (arg === "--skip-checks") {
       parsed.skipChecks = true;
+    } else if (arg === "--no-github-release") {
+      parsed.githubRelease = false;
     } else if (arg === "--remote") {
       index += 1;
       if (!args[index]) throw new Error("--remote requires a value");
@@ -213,6 +218,73 @@ function parseArgs(args) {
     }
   }
   return parsed;
+}
+
+async function createGithubRelease({ packageName, tag, version }) {
+  const existingRelease = await run("gh", ["release", "view", tag, "--json", "url"], {
+    capture: true,
+    allowFailure: true
+  });
+  if (existingRelease.code === 0) {
+    const release = JSON.parse(existingRelease.stdout);
+    if (await npmPackageVersionExists(packageName, version)) {
+      log(`skip: GitHub Release already exists at ${release.url}`);
+      log(`skip: ${packageName}@${version} is already published on npm`);
+      return;
+    }
+    log(`GitHub Release already exists at ${release.url}, but ${packageName}@${version} is not on npm`);
+    await runStep("Dispatching Release workflow for existing GitHub Release", "gh", [
+      "workflow",
+      "run",
+      "release.yml",
+      "--field",
+      `tag=${tag}`
+    ]);
+    return;
+  }
+
+  const notesDir = await mkdtemp(join(tmpdir(), "skillcat-release-notes-"));
+  const notesFile = join(notesDir, `${tag}.md`);
+  try {
+    await runStep("Generating GitHub Release notes", "node", [
+      "scripts/release-notes.mjs",
+      "base",
+      "--version",
+      version,
+      "--output",
+      notesFile
+    ]);
+
+    const args = [
+      "release",
+      "create",
+      tag,
+      "--title",
+      `${packageName} ${tag}`,
+      "--notes-file",
+      notesFile
+    ];
+    if (version.includes("-")) {
+      args.push("--prerelease");
+    }
+    await runStep("Creating GitHub Release", "gh", args);
+  } finally {
+    await rm(notesDir, { recursive: true, force: true });
+  }
+}
+
+async function npmPackageVersionExists(packageName, version) {
+  const result = await run("npm", ["view", `${packageName}@${version}`, "version", "--json"], {
+    capture: true,
+    allowFailure: true
+  });
+  if (result.code === 0 && result.stdout.trim()) {
+    return true;
+  }
+  if (/E404|404 Not Found|No match found/.test(`${result.stdout}\n${result.stderr}`)) {
+    return false;
+  }
+  throw new Error(`could not verify npm publish state for ${packageName}@${version}`);
 }
 
 function isSemverLike(value) {
@@ -323,6 +395,9 @@ async function run(command, args, options = {}) {
         stderr += chunk;
       });
     }
+    child.on("error", (error) => {
+      resolve({ code: -1, stdout, stderr: error.message });
+    });
     child.on("close", (code) => {
       resolve({ code: code ?? 0, stdout, stderr });
     });
@@ -358,6 +433,7 @@ Usage:
 Options:
   --remote <name>     remote to push to, default origin
   --skip-checks       skip local package verification
+  --no-github-release push the release commit and tag, but do not create the GitHub Release
 
 Examples:
   pnpm run release -- 0.1.3

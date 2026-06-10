@@ -221,6 +221,22 @@ pnpm test
 pnpm check   # tsc + vitest
 ```
 
+## Maintainer Release
+
+Releases are prepared locally and published by GitHub Actions.
+
+```sh
+pnpm release 0.1.3
+```
+
+That command updates the package version, runs package verification, creates the release commit and signed tag, pushes both atomically, and creates the GitHub Release. The Release workflow then publishes to npm, uploads the tarball, and patches the release notes with npm integrity and CI proof.
+
+Prerequisites:
+
+- `NPM_TOKEN` is set in GitHub repository secrets.
+- `gh` is authenticated for `shakkernerd/SkillsCatalog`.
+- Git tag signing is configured locally.
+
 ## Contributing
 
 Issues and PRs welcome — especially:
